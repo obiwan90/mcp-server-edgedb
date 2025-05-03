@@ -1,0 +1,35 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# EdgeDB MCP服务器项目结构
+
+## 主要入口点
+- 主入口文件是 [src/index.ts](mdc:src/index.ts)，它初始化MCP服务器并连接transport。
+
+## 项目组织
+项目按照功能模块组织为以下目录：
+
+- **tools/**: MCP工具实现
+  - [src/tools/index.ts](mdc:src/tools/index.ts) - 工具注册入口
+  - [src/tools/database.ts](mdc:src/tools/database.ts) - 数据库操作工具
+  - [src/tools/query.ts](mdc:src/tools/query.ts) - 查询操作工具
+  - [src/tools/schema.ts](mdc:src/tools/schema.ts) - 模式操作工具
+  - **internal/**: 工具内部辅助函数
+    - [src/tools/internal/query-helpers.ts](mdc:src/tools/internal/query-helpers.ts) - 查询辅助函数
+
+- **services/**: 核心服务实现
+  - [src/services/edgedb.ts](mdc:src/services/edgedb.ts) - EdgeDB服务连接和客户端管理
+
+- **resources/**: MCP资源定义
+  - 包含项目使用的全局资源
+
+- **config/**: 配置文件
+  - [src/config/index.ts](mdc:src/config/index.ts) - 服务器配置和环境设置
+
+- **utils/**: 通用工具函数
+  - 包含各种辅助函数和工具
+
+- **types/**: 类型定义
+  - 包含项目中使用的TypeScript类型定义

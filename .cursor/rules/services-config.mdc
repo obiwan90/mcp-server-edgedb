@@ -1,0 +1,24 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 服务和配置指南
+
+## EdgeDB服务
+[src/services/edgedb.ts](mdc:src/services/edgedb.ts) 提供EdgeDB连接管理：
+- 客户端创建和管理
+- 连接池和会话处理
+- 数据库连接关闭和异常处理
+
+## 配置管理
+配置目录包含服务器配置信息：
+- 数据库连接参数
+- 服务器设置
+- 环境配置
+
+## MCP资源
+资源目录定义了项目中使用的全局资源：
+- 资源定义和初始化
+- 资源访问控制
+- 资源使用场景

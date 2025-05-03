@@ -1,0 +1,30 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 开发指南
+
+## 项目设置
+- 项目使用TypeScript开发
+- 主要依赖包括:
+  - `@modelcontextprotocol/sdk` - MCP协议SDK
+  - `edgedb` - EdgeDB客户端库
+  - `zod` - 类型验证库
+
+## 构建和运行
+- 使用 `npm run build` 构建项目
+- 使用 `npm run start` 启动服务器
+- 使用 `npm run dev` 构建并立即启动（开发模式）
+
+## 扩展工具
+添加新工具的步骤:
+1. 在 `src/tools/` 目录创建新工具文件
+2. 在工具文件中定义工具函数和参数模式
+3. 在 [src/tools/index.ts](mdc:src/tools/index.ts) 中注册工具
+
+## 定义新资源
+添加新资源的步骤:
+1. 在 `src/resources/` 目录创建新资源文件
+2. 定义资源结构和访问方法
+3. 在资源索引文件中注册资源

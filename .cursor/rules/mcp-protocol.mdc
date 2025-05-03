@@ -1,0 +1,40 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# MCP协议与EdgeDB集成
+
+## MCP协议概述
+Model Context Protocol (MCP) 是一种用于AI模型与外部工具和资源交互的协议。在本项目中，MCP用于将EdgeDB数据库功能作为工具提供给AI模型。
+
+## 主要集成点
+- [src/index.ts](mdc:src/index.ts) 中初始化MCP服务器并连接transport
+- 工具通过 `registerAllTools` 函数在MCP服务器中注册
+- 资源通过 `registerAllResources` 函数在MCP服务器中注册
+
+## EdgeDB集成
+EdgeDB与MCP协议集成通过以下方式实现：
+
+1. **连接管理**
+   - [src/services/edgedb.ts](mdc:src/services/edgedb.ts) 管理与EdgeDB数据库的连接
+   - 支持连接池和会话管理
+   - 处理连接错误和资源清理
+
+2. **工具抽象**
+   - 数据库操作被抽象为MCP工具
+   - 每个工具提供明确的参数架构和返回类型
+   - 错误处理被封装在工具实现中
+
+3. **会话状态**
+   - MCP会话状态用于跟踪当前数据库连接
+   - 允许在多个工具调用之间维护连接上下文
+
+## 使用示例
+AI模型可以通过MCP协议调用EdgeDB工具来：
+- 连接到数据库
+- 执行EdgeQL查询
+- 管理数据库和模式
+- 分析数据库结构
+
+这种集成使AI模型能够无缝地与EdgeDB数据库交互，而不需要了解底层连接和查询实现细节。
