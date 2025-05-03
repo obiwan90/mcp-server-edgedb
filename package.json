@@ -1,6 +1,6 @@
 {
     "name": "@obiwan90/edgedb-mcp-server",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "edgedb mcp server",
     "repository": {
         "type": "git",
