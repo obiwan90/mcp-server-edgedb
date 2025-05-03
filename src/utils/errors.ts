@@ -1,14 +1,20 @@
 /**
  * 错误处理工具函数
+ * Error handling utility functions
  */
 import { McpErrorResponse } from '../types/mcp.js';
 
 /**
  * 添加通用错误处理的辅助函数
+ * Adds a helper function for unified error handling
  * @param error 错误对象
+ * @param error The error object
  * @param operationName 操作名称
+ * @param operationName The name of the operation
  * @param hints 可选的提示信息
+ * @param hints Optional hint messages
  * @returns 格式化的错误响应
+ * @returns Formatted error response
  */
 export function handleError(error: unknown, operationName: string, hints?: string): McpErrorResponse {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -63,9 +69,13 @@ SELECT myapp::User FILTER .name = $name`;
 
 /**
  * 创建格式化的错误对象
+ * Creates a formatted Error object
  * @param message 错误消息
+ * @param message Error message
  * @param code 错误代码（可选）
+ * @param code Optional error code
  * @returns 错误对象
+ * @returns Error object
  */
 export function createError(message: string, code?: string): Error {
     const error = new Error(message);

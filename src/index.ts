@@ -1,5 +1,6 @@
 /**
  * EdgeDB MCP服务器主入口文件
+ * EdgeDB MCP Server main entry file
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -8,6 +9,7 @@ import { registerAllResources } from "./resources/index.js";
 import { config } from "./config/index.js";
 
 // 初始化MCP服务器
+// Initialize MCP server
 const server = new McpServer({
     transport: new StdioServerTransport(),
     name: "EdgeDB MCP服务器",
@@ -16,12 +18,15 @@ const server = new McpServer({
 });
 
 // 注册所有资源
+// Register all resources
 registerAllResources(server);
 
 // 注册所有工具
+// Register all tools
 registerAllTools(server);
 
 // 启动服务器
+// Start the server
 (async function main() {
     try {
         console.log("启动MCP服务器...");
@@ -35,11 +40,13 @@ registerAllTools(server);
 })();
 
 // 处理退出事件
+// Handle exit events
 process.on("SIGINT", async () => {
     console.log("正在关闭服务器...");
 
     try {
         // 关闭数据库连接
+        // Close database connections
         const { closeAllClients } = await import("./services/edgedb.js");
         await closeAllClients();
 

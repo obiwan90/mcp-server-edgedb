@@ -1,5 +1,6 @@
 /**
  * 查询相关MCP工具
+ * Query related MCP tools
  */
 import { z } from "zod";
 import { McpToolResponse } from "../types/mcp.js";
@@ -9,20 +10,23 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 /**
  * 注册查询相关工具
- * @param server MCP服务器实例
+ * Register query related tools
+ * @param server MCP服务器实例 (MCP server instance)
  */
 export function registerQueryTools(server: McpServer) {
     /**
      * 执行EdgeQL查询工具
+     * Execute EdgeQL query tool
      */
     server.tool(
         "executeEdgeQL",
-        { query: z.string().describe("EdgeQL查询语句") },
+        { query: z.string().describe("EdgeQL query statement") },
         async ({ query }, extra): Promise<McpToolResponse> => {
             try {
                 const client = getClient();
 
                 // 执行EdgeQL查询
+                // Execute EdgeQL query
                 const result = await client.query(query);
 
                 return {
@@ -39,18 +43,20 @@ export function registerQueryTools(server: McpServer) {
 
     /**
      * 执行带参数的EdgeQL查询工具
+     * Execute EdgeQL query with parameters tool
      */
     server.tool(
         "executeEdgeQLWithParams",
         {
-            query: z.string().describe("EdgeQL参数化查询语句，使用$参数，例如: SELECT User FILTER .name = $name"),
-            params: z.string().describe("参数JSON对象，例如: {\"name\":\"张三\"}")
+            query: z.string().describe("EdgeQL parameterized query statement, using $parameters, e.g.: SELECT User FILTER .name = $name"),
+            params: z.string().describe("Parameter JSON object, e.g.: {\"name\":\"John\"}")
         },
         async ({ query, params }, extra): Promise<McpToolResponse> => {
             try {
                 const client = getClient();
 
                 // 解析参数
+                // Parse parameters
                 let paramsObj;
                 try {
                     paramsObj = JSON.parse(params);
@@ -59,15 +65,18 @@ export function registerQueryTools(server: McpServer) {
                 }
 
                 // 自动处理参数类型，检查查询中是否为每个参数添加了类型转换
+                // Automatically process parameter types, check if type conversion is added for each parameter in the query
                 let processedQuery = query;
                 for (const paramName in paramsObj) {
                     const paramPlaceholder = `$${paramName}`;
                     // 如果参数没有类型标注(<type>$param)，自动添加
+                    // If parameter has no type annotation (<type>$param), add it automatically
                     if (processedQuery.includes(paramPlaceholder) &&
                         !processedQuery.includes("<") &&
                         !new RegExp(`<[^>]+>${paramPlaceholder}`).test(processedQuery)) {
 
                         // 根据参数值类型推断EdgeDB类型
+                        // Infer EdgeDB type based on parameter value type
                         let typeStr = "str";
                         const paramValue = paramsObj[paramName];
 
@@ -82,6 +91,7 @@ export function registerQueryTools(server: McpServer) {
                         }
 
                         // 替换参数为带类型标注的形式
+                        // Replace parameter with type-annotated form
                         processedQuery = processedQuery.replace(
                             new RegExp(`\\${paramPlaceholder}\\b`, "g"),
                             `<${typeStr}>${paramPlaceholder}`
@@ -90,9 +100,11 @@ export function registerQueryTools(server: McpServer) {
                 }
 
                 // 执行参数化查询
+                // Execute parameterized query
                 const result = await client.queryJSON(processedQuery, paramsObj);
 
                 // 解析JSON结果
+                // Parse JSON result
                 let parsedResult;
                 try {
                     parsedResult = JSON.parse(result);
@@ -119,24 +131,28 @@ export function registerQueryTools(server: McpServer) {
 
     /**
      * 查询单条记录工具
+     * Query single record tool
      */
     server.tool(
         "findOne",
         {
-            type: z.string().describe("类型名称，例如: myapp::User"),
-            filter: z.string().describe("过滤条件，例如: .name = '张三'"),
-            fields: z.string().optional().describe("要返回的字段，例如: {name, email}，默认为全部字段 {*}")
+            type: z.string().describe("Type name, e.g.: myapp::User"),
+            filter: z.string().describe("Filter condition, e.g.: .name = 'John'"),
+            fields: z.string().optional().describe("Fields to return, e.g.: {name, email}, default is all fields {*}")
         },
         async ({ type, filter, fields }, extra): Promise<McpToolResponse> => {
             try {
                 const client = getClient();
 
                 // 使用executeEdgeQL工具实现，不再直接构建查询
+                // Implement using executeEdgeQL tool, no longer directly building the query
                 const { executeEdgeQL } = await import("./internal/query-helpers.js");
 
                 // 处理字段选择，确保格式正确
+                // Process field selection, ensure correct format
                 let fieldsStr = fields || '{*}';
                 // 确保字段选择有花括号
+                // Ensure field selection has curly braces
                 if (!fieldsStr.startsWith('{')) {
                     fieldsStr = `{${fieldsStr}}`;
                 }
@@ -145,6 +161,7 @@ export function registerQueryTools(server: McpServer) {
                 }
 
                 // 构建正确格式的EdgeQL查询，确保字段选择紧跟类型名称
+                // Build correctly formatted EdgeQL query, ensure field selection follows type name
                 const queryStr = `SELECT ${type} ${fieldsStr} FILTER ${filter} LIMIT 1`;
                 console.log("执行查询:", queryStr);
 
@@ -173,16 +190,17 @@ export function registerQueryTools(server: McpServer) {
 
     /**
      * 查询多条记录工具
+     * Query multiple records tool
      */
     server.tool(
         "findMany",
         {
-            type: z.string().describe("类型名称，例如: myapp::User"),
-            filter: z.string().optional().describe("过滤条件，例如: .name LIKE '%张%'"),
-            fields: z.string().optional().describe("要返回的字段，例如: {name, email}，默认为全部字段 {*}"),
-            orderBy: z.string().optional().describe("排序条件，例如: .name ASC"),
-            limit: z.number().optional().describe("最大返回记录数"),
-            offset: z.number().optional().describe("跳过的记录数")
+            type: z.string().describe("Type name, e.g.: myapp::User"),
+            filter: z.string().optional().describe("Filter condition, e.g.: .name LIKE '%John%'"),
+            fields: z.string().optional().describe("Fields to return, e.g.: {name, email}, default is all fields {*}"),
+            orderBy: z.string().optional().describe("Order by condition, e.g.: .name ASC"),
+            limit: z.number().optional().describe("Maximum number of records to return"),
+            offset: z.number().optional().describe("Number of records to skip")
         },
         async ({ type, filter, fields, orderBy, limit, offset }, extra): Promise<McpToolResponse> => {
             try {

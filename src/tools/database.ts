@@ -1,5 +1,6 @@
 /**
  * 数据库管理相关MCP工具
+ * Database management related MCP tools
  */
 import { z } from "zod";
 import { McpToolResponse } from "../types/mcp.js";
@@ -9,24 +10,28 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 /**
  * 注册数据库管理相关工具
- * @param server MCP服务器实例
+ * Register database management related tools
+ * @param server MCP服务器实例 (MCP server instance)
  */
 export function registerDatabaseTools(server: McpServer) {
     /**
      * 连接到EdgeDB数据库工具
+     * Connect to EdgeDB database tool
      */
     server.tool(
         "connectEdgeDB",
         {
-            dsn: z.string().optional().describe("EdgeDB连接字符串 (例如: edgedb://user:password@hostname:port/database)"),
-            instanceName: z.string().optional().describe("EdgeDB实例名称"),
+            dsn: z.string().optional().describe("EdgeDB connection string (e.g.: edgedb://user:password@hostname:port/database)"),
+            instanceName: z.string().optional().describe("EdgeDB instance name"),
         },
         async ({ dsn, instanceName }, extra): Promise<McpToolResponse> => {
             try {
                 // 导入服务
+                // Import services
                 const { initEdgeDBClient } = await import("../services/edgedb.js");
 
                 // 初始化连接
+                // Initialize connection
                 const result = await initEdgeDBClient(dsn, instanceName);
 
                 return {
@@ -43,6 +48,7 @@ export function registerDatabaseTools(server: McpServer) {
 
     /**
      * 列出所有可访问的数据库
+     * List all accessible databases
      */
     server.tool(
         "listDatabases",
@@ -72,6 +78,7 @@ export function registerDatabaseTools(server: McpServer) {
 
     /**
      * 获取当前数据库名称
+     * Get current database name
      */
     server.tool(
         "currentDatabase",
@@ -81,15 +88,19 @@ export function registerDatabaseTools(server: McpServer) {
                 const client = getClient();
 
                 // 导入getCurrentDatabase函数
+                // Import getCurrentDatabase function
                 const { getCurrentDatabase } = await import("../services/edgedb.js");
 
                 // 从客户端直接查询当前数据库名称
+                // Query current database name directly from the client
                 const actualDb = await client.querySingle('SELECT sys::get_current_database()');
 
                 // 获取存储的数据库名称
+                // Get stored database name
                 const storedDb = getCurrentDatabase();
 
                 // 如果不一致，提供警告
+                // If inconsistent, provide a warning
                 if (actualDb !== storedDb) {
                     return {
                         content: [{
@@ -121,12 +132,13 @@ export function registerDatabaseTools(server: McpServer) {
 
     /**
      * 创建新数据库
+     * Create a new database
      */
     server.tool(
         "createDatabase",
         {
-            name: z.string().describe("新数据库名称"),
-            switchTo: z.boolean().optional().describe("创建后是否切换到新数据库")
+            name: z.string().describe("New database name"),
+            switchTo: z.boolean().optional().describe("Whether to switch to the new database after creation")
         },
         async ({ name, switchTo }, extra): Promise<McpToolResponse> => {
             try {
@@ -134,16 +146,20 @@ export function registerDatabaseTools(server: McpServer) {
                 const { initEdgeDBClient, getCurrentDatabase } = await import("../services/edgedb.js");
 
                 // 创建数据库
+                // Create database
                 await client.query(`
                     CREATE DATABASE ${name};
                 `);
 
                 // 创建数据库成功
+                // Database created successfully
                 if (switchTo) {
                     // 连接到新数据库
+                    // Connect to the new database
                     await initEdgeDBClient(undefined, undefined, name);
 
                     // 验证是否成功切换
+                    // Verify if switch was successful
                     const currentDb = getCurrentDatabase();
 
                     if (currentDb !== name) {
@@ -178,11 +194,12 @@ export function registerDatabaseTools(server: McpServer) {
 
     /**
      * 切换到特定数据库
+     * Switch to a specific database
      */
     server.tool(
         "useDatabase",
         {
-            database: z.string().describe("数据库名称")
+            database: z.string().describe("Database name")
         },
         async ({ database }, extra): Promise<McpToolResponse> => {
             try {
@@ -190,6 +207,7 @@ export function registerDatabaseTools(server: McpServer) {
                 const { getCurrentDatabase, initEdgeDBClient, setCurrentDatabase, getDatabaseClient } = await import("../services/edgedb.js");
 
                 // 检查当前数据库
+                // Check current database
                 const currentDb = getCurrentDatabase();
 
                 if (currentDb === database) {
@@ -202,6 +220,7 @@ export function registerDatabaseTools(server: McpServer) {
                 }
 
                 // 检查数据库是否存在
+                // Check if database exists
                 const exists = await client.querySingle(`
                     SELECT EXISTS (
                         SELECT sys::Database FILTER .name = <str>$name
@@ -219,12 +238,15 @@ export function registerDatabaseTools(server: McpServer) {
                 }
 
                 // 检查是否已经有此数据库的连接
+                // Check if there is already a connection to this database
                 const existingClient = getDatabaseClient(database);
                 if (existingClient) {
                     // 直接切换到已有连接
+                    // Switch directly to existing connection
                     setCurrentDatabase(database);
 
                     // 验证连接
+                    // Verify connection
                     try {
                         const dbName = await existingClient.querySingle('SELECT sys::get_current_database()');
                         console.log(`验证已有连接成功，数据库: ${dbName}`);
@@ -239,10 +261,12 @@ export function registerDatabaseTools(server: McpServer) {
                     }
                 } else {
                     // 创建新连接
+                    // Create new connection
                     await initEdgeDBClient(undefined, undefined, database);
                 }
 
                 // 验证当前数据库名称
+                // Verify current database name
                 const newCurrentDb = getCurrentDatabase();
                 if (newCurrentDb !== database) {
                     return {

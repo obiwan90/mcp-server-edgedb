@@ -1,5 +1,6 @@
 /**
- * EdgeDB服务连接管理
+ * EdgeDB service connection management
+ * EdgeDB service connection management
  */
 import * as edgedb from "edgedb";
 import { config } from "../config/index.js";
@@ -7,10 +8,13 @@ import { EdgeDBConnectionConfig } from "../types/edgedb.js";
 import { createError } from "../utils/errors.js";
 
 // 数据库客户端映射，每个数据库使用独立连接
+// Database client map: each database uses a separate connection
 const dbClientMap: Map<string, edgedb.Client> = new Map();
 // 当前连接的数据库名称
+// Current database name
 let currentDatabase: string = "main";
 // 默认连接配置
+// Default connection configuration
 let defaultConnectionConfig: EdgeDBConnectionConfig = {
     dsn: config.edgedb.dsn,
     instanceName: config.edgedb.instanceName
@@ -18,14 +22,20 @@ let defaultConnectionConfig: EdgeDBConnectionConfig = {
 
 /**
  * 初始化EdgeDB客户端
+ * Initialize EdgeDB client
  * @param dsn EdgeDB连接字符串（可选）
+ * @param dsn EdgeDB connection string (optional)
  * @param instanceName EdgeDB实例名称（可选）
+ * @param instanceName EdgeDB instance name (optional)
  * @param database 数据库名称（可选）
+ * @param database Database name (optional)
  * @returns 初始化结果信息
+ * @returns Initialization result message
  */
 export async function initEdgeDBClient(dsn?: string, instanceName?: string, database?: string): Promise<string> {
     try {
         // 保存连接配置
+        // Save connection configuration
         if (dsn || instanceName) {
             defaultConnectionConfig = {
                 dsn: dsn || config.edgedb.dsn,
@@ -34,24 +44,28 @@ export async function initEdgeDBClient(dsn?: string, instanceName?: string, data
         }
 
         // 确定要连接的数据库名称
+        // Determine database name to connect
         const dbName = database || "main";
 
         // 如果已有此数据库的连接，先关闭
+        // If a connection to this database exists, close it first
         if (dbClientMap.has(dbName)) {
             const oldClient = dbClientMap.get(dbName);
             if (oldClient) {
                 try {
                     await oldClient.close();
                 } catch (e) {
-                    console.error(`关闭数据库 ${dbName} 的连接失败:`, e);
+                    console.error(`Failed to close connection to database ${dbName}:`, e);
                 }
             }
             dbClientMap.delete(dbName);
         }
 
         // 创建连接选项
+        // Create connection options
         const options: any = {
             tlsSecurity: "insecure", // 接受自签名证书
+            // Accept self-signed certificates
             database: dbName
         };
 
@@ -71,41 +85,48 @@ export async function initEdgeDBClient(dsn?: string, instanceName?: string, data
             options.instanceName = defaultConnectionConfig.instanceName;
         }
 
-        console.log(`正在连接到数据库 ${dbName}，配置:`, options);
+        console.log(`Connecting to database ${dbName}, configuration:`, options);
 
         // 创建新客户端
+        // Create new client
         const client = edgedb.createClient(options);
 
         // 测试连接
+        // Test connection
         const actualDbName = await client.querySingle('SELECT sys::get_current_database()');
-        console.log(`连接测试成功，实际数据库名称: ${actualDbName}`);
+        console.log(`Connection test successful, actual database name: ${actualDbName}`);
 
         // 存储客户端
+        // Store client
         dbClientMap.set(dbName, client);
 
         // 更新当前数据库
+        // Update current database
         currentDatabase = dbName;
-        console.log(`已将当前数据库设置为: ${currentDatabase}`);
+        console.log(`Current database set to: ${currentDatabase}`);
 
-        return `成功连接到EdgeDB数据库: ${actualDbName}`;
+        return `Successfully connected to EdgeDB database: ${actualDbName}`;
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`连接到EdgeDB失败:`, error);
-        throw new Error(`连接到EdgeDB失败: ${errorMessage}`);
+        console.error(`Failed to connect to EdgeDB:`, error);
+        throw new Error(`Failed to connect to EdgeDB: ${errorMessage}`);
     }
 }
 
 /**
  * 获取当前数据库的客户端
+ * Get the client for the current database
  * @returns EdgeDB客户端实例
+ *          EdgeDB client instance
  * @throws 如果客户端未初始化则抛出错误
+ *          Throws if client is not initialized
  */
 export function getClient(): edgedb.Client {
     // 获取当前数据库的客户端
     const client = dbClientMap.get(currentDatabase);
 
     if (!client) {
-        throw new Error(`EdgeDB客户端未初始化，请先使用connectEdgeDB工具连接到数据库 ${currentDatabase}`);
+        throw new Error(`EdgeDB client not initialized, please use connectEdgeDB tool to connect to database ${currentDatabase}`);
     }
 
     return client;
@@ -113,8 +134,11 @@ export function getClient(): edgedb.Client {
 
 /**
  * 获取指定数据库的客户端
+ * Get the client for the specified database
  * @param database 数据库名称
- * @returns EdgeDB客户端实例
+ *                 Database name
+ * @returns EdgeDB客户端实例或null
+ *          EdgeDB client instance or null
  */
 export function getDatabaseClient(database: string): edgedb.Client | null {
     return dbClientMap.get(database) || null;
@@ -122,7 +146,9 @@ export function getDatabaseClient(database: string): edgedb.Client | null {
 
 /**
  * 获取当前连接的数据库名称
+ * Get the name of the currently connected database
  * @returns 当前连接的数据库名称
+ *          Name of the currently connected database
  */
 export function getCurrentDatabase(): string {
     return currentDatabase;
@@ -130,25 +156,28 @@ export function getCurrentDatabase(): string {
 
 /**
  * 设置当前数据库名称
+ * Set the current database name
  * @param database 数据库名称
+ *                 Database name
  */
 export function setCurrentDatabase(database: string): void {
     if (dbClientMap.has(database)) {
         currentDatabase = database;
-        console.log(`已切换当前数据库为: ${database}`);
+        console.log(`Current database switched to: ${database}`);
     } else {
-        throw new Error(`数据库 ${database} 未连接，请先建立连接`);
+        throw new Error(`Database ${database} not connected, please establish connection first`);
     }
 }
 
 /**
  * 关闭所有EdgeDB客户端连接
+ * Close all EdgeDB client connections
  */
 export async function closeAllClients(): Promise<void> {
     const closePromises = [];
 
     for (const [dbName, client] of dbClientMap.entries()) {
-        console.log(`正在关闭数据库 ${dbName} 的连接...`);
+        console.log(`Closing connection to database ${dbName}...`);
         closePromises.push(client.close());
     }
 

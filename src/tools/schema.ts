@@ -1,5 +1,6 @@
 /**
  * 模式管理相关MCP工具
+ * Schema management related MCP tools
  */
 import { z } from "zod";
 import { McpToolResponse } from "../types/mcp.js";
@@ -8,6 +9,7 @@ import { handleError } from "../utils/errors.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 // 类型定义
+// Type definitions
 interface SchemaProperty {
     name: string;
     required: boolean;
@@ -51,22 +53,25 @@ interface SchemaComparison {
 
 /**
  * 注册模式管理相关工具
- * @param server MCP服务器实例
+ * Register schema management related tools
+ * @param server MCP服务器实例 (MCP server instance)
  */
 export function registerSchemaTools(server: McpServer) {
     /**
      * 列出类型工具
+     * List types tool
      */
     server.tool(
         "listTypes",
         {
-            includeSystem: z.boolean().optional().describe("是否包含系统类型")
+            includeSystem: z.boolean().optional().describe("Whether to include system types")
         },
         async ({ includeSystem }, extra): Promise<McpToolResponse> => {
             try {
                 const client = getClient();
 
                 // 根据EdgeDB版本构建查询
+                // Build query based on EdgeDB version
                 let query;
                 if (includeSystem) {
                     query = `
@@ -108,17 +113,19 @@ export function registerSchemaTools(server: McpServer) {
 
     /**
      * 描述类型工具
+     * Describe type tool
      */
     server.tool(
         "describeType",
         {
-            name: z.string().describe("类型名称，例如: myapp::User")
+            name: z.string().describe("Type name, e.g.: myapp::User")
         },
         async ({ name }, extra): Promise<McpToolResponse> => {
             try {
                 const client = getClient();
 
                 // 查询类型信息
+                // Query type information
                 const result = await client.query(`
                     SELECT schema::ObjectType {
                         name,
@@ -198,13 +205,14 @@ export function registerSchemaTools(server: McpServer) {
     );
 
     /**
-     * 比较模式工具
+     * 比较两个类型的模式结构
+     * Compare schema structure of two types
      */
     server.tool(
         "compareSchemas",
         {
-            sourceType: z.string().describe("源类型名称，例如: myapp::User"),
-            targetType: z.string().describe("目标类型名称，例如: myapp::Profile")
+            sourceType: z.string().describe("Source type name, e.g.: myapp::User"),
+            targetType: z.string().describe("Target type name, e.g.: myapp::Profile")
         },
         async ({ sourceType, targetType }, extra): Promise<McpToolResponse> => {
             try {
