@@ -123,25 +123,6 @@ npm run build
 npm start
 ```
 
-### Publishing a New Version
-```bash
-# 1. Commit changes
-git add .
-git commit -m "feat/fix: update description"
-
-# 2. Update version number
-npm version patch  # or minor or major
-
-# 3. Build the project
-npm run build
-
-# 4. Publish to NPM
-npm publish --access=public
-
-# 5. Push to GitHub
-git push && git push --tags
-```
-
 ## Cursor Integration
 
 To integrate this MCP server with the Cursor editor, follow these steps:
@@ -155,6 +136,18 @@ To integrate this MCP server with the Cursor editor, follow these steps:
   "args": [
     "-y",
     "@obiwan90/edgedb-mcp-server@latest"
+  ]
+}
+```
+
+```json
+"edgedb-server": {
+  "command": "npx",
+  "args": [
+    "-y",
+    "@obiwan90/edgedb-mcp-server@latest",
+    "--instanceName",
+    "your-instance-name"
   ]
 }
 ```
