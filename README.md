@@ -154,7 +154,11 @@ To integrate this MCP server with the Cursor editor, follow these steps:
 
 3. Restart the Cursor editor
 4. Now you can use EdgeDB tools in Cursor! Access them through the command palette (Cmd+Shift+P) by searching for "EdgeDB" or via the chat interface.
+```json
+Cursor dialog box input：
 
+mcp_edgedb-server_connectEdgeDB(instanceName="your-instance-name")
+```
 ## License
 
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
