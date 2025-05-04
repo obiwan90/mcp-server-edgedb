@@ -1,3 +1,8 @@
+[![npm版本](https://img.shields.io/npm/v/@obiwan90/edgedb-mcp-server.svg)](https://www.npmjs.com/package/@obiwan90/edgedb-mcp-server)
+[![下载总量](https://img.shields.io/npm/dt/@obiwan90/edgedb-mcp-server.svg)](https://www.npmjs.com/package/@obiwan90/edgedb-mcp-server)
+[![许可证](https://img.shields.io/npm/l/@obiwan90/edgedb-mcp-server.svg)](https://github.com/obiwan90/mcp-server-edgedb/blob/main/LICENSE)
+[![包大小](https://img.shields.io/bundlephobia/min/@obiwan90/edgedb-mcp-server.svg)](https://bundlephobia.com/package/@obiwan90/edgedb-mcp-server)
+
 # @obiwan90/edgedb-mcp-server
 
 EdgeDB MCP Server is a tool based on the Model Context Protocol (MCP) that provides query and management capabilities for EdgeDB databases. It can be used as a command-line tool or integrated as a library into other projects.
@@ -139,7 +144,6 @@ To integrate this MCP server with the Cursor editor, follow these steps:
   ]
 }
 ```
-
 ```json
 "edgedb-server": {
   "command": "npx",
